@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+if command -v gradle >/dev/null 2>&1; then
+  gradle "$@"
+else
+  echo "Gradle not found. Please install Gradle or replace this with a real gradle wrapper."
+  exit 1
+fi
