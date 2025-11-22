@@ -52,7 +52,7 @@ crate-type = [\"cdylib\"]
 
 [dependencies]
 jni = \"0.21\"
-{crate_name} = {{ path = \"..\" }}
+{crate_name} = {{ path = \"../..\" }}
 ", crate_name = crate_name);
     fs::write(target.join("Cargo.toml"), cargo_toml)?;
 
@@ -65,13 +65,15 @@ jni = \"0.21\"
     ];
     for (abi, tgt) in &abis {
         let mut cmd = Command::new("cargo");
-        cmd.arg("ndk").arg("--target").arg(tgt).arg("--manifest-path")
-            .arg(target.join("Cargo.toml"));
+        cmd.arg("ndk")
+            .arg("--target").arg(tgt)
+            .arg("build");  // Remove the canonicalize line
         if args.release { cmd.arg("--release"); }
+        cmd.current_dir(&target);  // This is correct - run from the crate directory
+
         println!("Running: {:?}", cmd);
         let status = cmd.status().context("failed to run cargo ndk")?;
         if !status.success() { anyhow::bail!("cargo ndk failed"); }
-
         let built = crate_path.join(format!("target/{}/release/libpanpan_jni.so", tgt));
         let built_debug = crate_path.join(format!("target/{}/debug/libpanpan_jni.so", tgt));
         let found = if built.exists() { built } else if built_debug.exists() { built_debug } else {

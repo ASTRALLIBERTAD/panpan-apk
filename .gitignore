@@ -1,1 +1,8 @@
 target/
+
+android/app/build/
+
+android/app/src/main/jniLibs/armeabi-v7a/
+android/app/src/main/jniLibs/arm64-v8a/
+
+android/.gradle/

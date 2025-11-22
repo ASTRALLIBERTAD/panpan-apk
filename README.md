@@ -18,3 +18,22 @@ Quick start:
    ```
    panpan-apk --crate-path ./example_crate --android-template ./android --release --install
    ```
+
+For app debugging (Windows):
+1. Get your app’s PID.
+   Run this in PowerShell or CMD:
+   ```
+   adb shell pidof com.lucidum.panpan
+   ```
+   Suppose it returns something like: `15322`
+2. Save only your app’s error logs to crash.log.
+
+   CMD version:
+   ```
+   adb logcat --pid=15322 *:E > crash.log
+   ```
+
+   PowerShell version:
+   ```
+   adb logcat --pid=15322 *:E | Out-File crash.log
+   ```
