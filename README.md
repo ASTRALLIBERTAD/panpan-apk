@@ -1,4 +1,4 @@
-# panpan-apk Starter Repo
+# panpan-apk
 
 This archive contains a starter implementation of **panpan-apk**:
 - `tools/panpan-apk/` — Rust CLI starter tool (generator skeleton).
