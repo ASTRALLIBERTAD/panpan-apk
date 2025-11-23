@@ -59,6 +59,8 @@ crate-type = [\"cdylib\"]
 [dependencies]
 jni = \"0.21\"
 gl = \"0.14\"
+android_logger = \"0.13\"
+log = \"0.4\"
 {panpan_dep}{crate_name} = {{ path = \"../..\" }}
 ");
     fs::write(target.join("Cargo.toml"), cargo_toml)?;
@@ -148,34 +150,56 @@ fn generate_librs_with_opengl(crate_name: &str, fns: &[String]) -> String {
     let has_resize = fns.contains(&"resize".to_string());
     let has_render = fns.contains(&"render".to_string());
 
+    // Generate wrapper functions that re-export user's pub fn with #[no_mangle]
+    let mut wrapper_fns = String::new();
+    
+    if has_init {
+        wrapper_fns.push_str(&format!(
+            "#[no_mangle]\npub extern \"C\" fn panpan_user_init() {{\n    {}::init();\n}}\n\n",
+            crate_name
+        ));
+    }
+    
+    if has_resize {
+        wrapper_fns.push_str(&format!(
+            "#[no_mangle]\npub extern \"C\" fn panpan_user_resize(width: i32, height: i32) {{\n    {}::resize(width, height);\n}}\n\n",
+            crate_name
+        ));
+    }
+    
+    if has_render {
+        wrapper_fns.push_str(&format!(
+            "#[no_mangle]\npub extern \"C\" fn panpan_user_render() {{\n    {}::render();\n}}\n\n",
+            crate_name
+        ));
+    }
+
     let init_call = if has_init {
-        format!("    {}::init();\n", crate_name)
+        "    panpan_user_init();\n"
     } else {
-        "    // No init() function found in user crate\n".to_string()
+        "    // No init() function found in user crate\n"
     };
 
     let resize_call = if has_resize {
-        format!("    {}::resize(width as i32, height as i32);\n", crate_name)
+        "    panpan_user_resize(width as i32, height as i32);\n    panpan::panpan_internal_set_screen_size(width as i32, height as i32);\n"
     } else {
-        "    // No resize() function found in user crate\n".to_string()
+        "    // No resize() function found in user crate\n"
     };
 
     let render_call = if has_render {
-        format!("    {}::render();\n", crate_name)
+        "    panpan_user_render();\n"
     } else {
-        "    // No render() function found in user crate\n".to_string()
+        "    // No render() function found in user crate\n"
     };
 
-    // --- core output using ONLY raw strings ---
-    let mut out = String::new();
-
-    out.push_str(
-r####"
+    let mut code = String::new();
+    
+    code.push_str(r#"
 use jni::objects::JClass;
 use jni::sys::jint;
 use jni::JNIEnv;
 use std::ffi::CString;
-use std::sync::Mutex;
+use std::sync::{Mutex, Once};
 
 // OpenGL function loader
 extern "C" {
@@ -349,38 +373,87 @@ impl TextRenderer {
         }
     }
 }
+"#);
 
-const VERTEX_SHADER: &str = r###"#version 300 es
-layout (location = 0) in vec4 vertex;
-out vec2 TexCoords;
-uniform mat4 projection;
-void main() {
-    gl_Position = projection * vec4(vertex.xy, 0.0, 1.0);
-    TexCoords = vertex.zw;
-}
-"###;
+    // Add shader constants as strings (avoiding raw string issues)
+    code.push_str("\nconst VERTEX_SHADER: &str = r###\"#version 300 es\n");
+    code.push_str("layout (location = 0) in vec4 vertex;\n");
+    code.push_str("out vec2 TexCoords;\n");
+    code.push_str("uniform mat4 projection;\n");
+    code.push_str("void main() {\n");
+    code.push_str("    gl_Position = projection * vec4(vertex.xy, 0.0, 1.0);\n");
+    code.push_str("    TexCoords = vertex.zw;\n");
+    code.push_str("}\n");
+    code.push_str("\"###;\n\n");
+    
+    code.push_str("const FRAGMENT_SHADER: &str = r###\"#version 300 es\n");
+    code.push_str("precision mediump float;\n");
+    code.push_str("in vec2 TexCoords;\n");
+    code.push_str("out vec4 color;\n");
+    code.push_str("uniform sampler2D text;\n");
+    code.push_str("uniform vec4 textColor;\n");
+    code.push_str("void main() {\n");
+    code.push_str("    float alpha = texture(text, TexCoords).r;\n");
+    code.push_str("    color = vec4(textColor.rgb, textColor.a * alpha);\n");
+    code.push_str("}\n");
+    code.push_str("\"###;\n\n");
+    
+    code.push_str(r#"
+static INIT_LOGGER: Once = Once::new();
 
-const FRAGMENT_SHADER: &str = r###"#version 300 es
-precision mediump float;
-in vec2 TexCoords;
-out vec4 color;
-uniform sampler2D text;
-uniform vec4 textColor;
-void main() {
-    float alpha = texture(text, TexCoords).r;
-    color = vec4(textColor.rgb, textColor.a * alpha);
+fn init_logging() {
+    INIT_LOGGER.call_once(|| {
+        android_logger::init_once(
+            android_logger::Config::default()
+                .with_max_level(log::LevelFilter::Debug)
+                .with_tag("PanPan")
+        );
+    });
 }
-"###;
+
+// Wrapper functions to call user code
+"#);
+
+    code.push_str(&wrapper_fns);
+    
+    code.push_str(r#"
+#[no_mangle]
+pub extern "C" fn panpan_draw_text(
+    text_ptr: *const u8,
+    text_len: usize,
+    x: f32,
+    y: f32,
+    scale: f32,
+    red: f32,
+    green: f32,
+    blue: f32,
+    alpha: f32,
+) {
+    let text = unsafe {
+        std::str::from_utf8_unchecked(std::slice::from_raw_parts(text_ptr, text_len))
+    };
+    
+    if let Ok(mut renderer) = TEXT_RENDERER.lock() {
+        if let Some(ref mut r) = *renderer {
+            unsafe {
+                r.render(text, x, y, scale, [red, green, blue, alpha], SCREEN_WIDTH, SCREEN_HEIGHT);
+            }
+        }
+    }
+}
 
 // JNI ENTRYPOINTS -------------------------------------------------------
 
 #[no_mangle]
 pub extern "C" fn Java_com_lucidum_panpan_MainActivity_nativeInit(_env: JNIEnv, _class: JClass) {
+    init_logging();
+    
     unsafe {
         gl::load_with(|s| {
             let c_str = CString::new(s).unwrap();
             eglGetProcAddress(c_str.as_ptr()) as *const _
         });
+        
         gl::ClearColor(0.1, 0.2, 0.3, 1.0);
         gl::Enable(gl::DEPTH_TEST);
         gl::DepthFunc(gl::LEQUAL);
@@ -389,39 +462,32 @@ pub extern "C" fn Java_com_lucidum_panpan_MainActivity_nativeInit(_env: JNIEnv, 
             *renderer = Some(TextRenderer::new());
         }
     }
-}
-"####);
+"#);
 
-    // Insert init call
-    out.push_str(&init_call);
-
-    out.push_str(
-r####"
-#[no_mangle]
+    code.push_str(init_call);
+    code.push_str("}\n\n");
+    
+    code.push_str(r#"#[no_mangle]
 pub extern "C" fn Java_com_lucidum_panpan_MainActivity_nativeResize(_env: JNIEnv, _class: JClass, width: jint, height: jint) {
     unsafe {
         gl::Viewport(0, 0, width, height);
         SCREEN_WIDTH = width as f32;
         SCREEN_HEIGHT = height as f32;
     }
-}
-"####);
+"#);
 
-    // Insert resize call
-    out.push_str(&resize_call);
-
-    out.push_str(
-r####"
-#[no_mangle]
+    code.push_str(resize_call);
+    code.push_str("}\n\n");
+    
+    code.push_str(r#"#[no_mangle]
 pub extern "C" fn Java_com_lucidum_panpan_MainActivity_nativeRender(_env: JNIEnv, _class: JClass) {
     unsafe {
         gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
     }
-}
-"####);
+"#);
 
-    // Insert render call
-    out.push_str(&render_call);
-
-    out
+    code.push_str(render_call);
+    code.push_str("}\n");
+    
+    code
 }
