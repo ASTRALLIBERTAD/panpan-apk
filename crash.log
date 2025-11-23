@@ -1,51 +1,36 @@
 --------- beginning of main
-11-23 18:21:35.148  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f010000.
-11-23 18:21:35.148  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f020000.
-11-23 18:21:35.148  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f030000.
-11-23 18:21:35.148  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f040000.
-11-23 18:21:35.148  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f050000.
-11-23 18:21:35.148  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f010000.
-11-23 18:21:35.148  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f020000.
-11-23 18:21:35.148  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f030000.
-11-23 18:21:35.149  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f040000.
-11-23 18:21:35.149  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f050000.
-11-23 18:21:35.153  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f010000.
-11-23 18:21:35.153  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f020000.
-11-23 18:21:35.154  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f030000.
-11-23 18:21:35.154  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f040000.
-11-23 18:21:35.154  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f050000.
-11-23 18:21:35.170  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f010000.
-11-23 18:21:35.170  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f020000.
-11-23 18:21:35.170  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f030000.
-11-23 18:21:35.170  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f040000.
-11-23 18:21:35.171  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f050000.
-11-23 18:21:35.243  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f010000.
-11-23 18:21:35.243  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f020000.
-11-23 18:21:35.243  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f030000.
-11-23 18:21:35.243  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f040000.
-11-23 18:21:35.243  8946  8946 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f050000.
---------- beginning of crash
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: FATAL EXCEPTION: main
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: Process: com.lucidum.panpan, PID: 8946
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: java.lang.UnsatisfiedLinkError: dlopen failed: cannot locate symbol "eglGetProcAddress" referenced by "/data/app/~~pqLSeAQl6Lbg9-481pDKcA==/com.lucidum.panpan-2yhw_ByGm1cnwPx5KkVJpA==/lib/arm64/libpanpan.so"...
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at java.lang.Runtime.loadLibrary0(Runtime.java:1090)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at java.lang.Runtime.loadLibrary0(Runtime.java:1012)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at java.lang.System.loadLibrary(System.java:1765)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at com.lucidum.panpan.MainActivity.<clinit>(MainActivity.kt:12)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at java.lang.Class.newInstance(Native Method)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at android.app.AppComponentFactory.instantiateActivity(AppComponentFactory.java:95)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at android.app.Instrumentation.newActivity(Instrumentation.java:1452)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:4148)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:4494)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:123)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at android.app.servertransaction.TransactionExecutor.executeNonLifecycleItem(TransactionExecutor.java:174)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:109)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:81)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2786)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at android.os.Handler.dispatchMessage(Handler.java:107)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at android.os.Looper.loopOnce(Looper.java:311)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at android.os.Looper.loop(Looper.java:408)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at android.app.ActivityThread.main(ActivityThread.java:9119)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at java.lang.reflect.Method.invoke(Native Method)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:627)
-11-23 18:21:35.251  8946  8946 E AndroidRuntime: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:970)
+11-23 21:02:09.906 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f010000.
+11-23 21:02:09.906 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f020000.
+11-23 21:02:09.906 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f030000.
+11-23 21:02:09.906 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f040000.
+11-23 21:02:09.907 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f050000.
+11-23 21:02:09.907 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f010000.
+11-23 21:02:09.907 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f020000.
+11-23 21:02:09.907 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f030000.
+11-23 21:02:09.907 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f040000.
+11-23 21:02:09.907 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f050000.
+11-23 21:02:09.913 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f010000.
+11-23 21:02:09.913 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f020000.
+11-23 21:02:09.913 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f030000.
+11-23 21:02:09.913 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f040000.
+11-23 21:02:09.914 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f050000.
+11-23 21:02:09.928 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f010000.
+11-23 21:02:09.929 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f020000.
+11-23 21:02:09.929 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f030000.
+11-23 21:02:09.929 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f040000.
+11-23 21:02:09.929 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f050000.
+11-23 21:02:09.959 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f010000.
+11-23 21:02:09.960 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f020000.
+11-23 21:02:09.960 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f030000.
+11-23 21:02:09.960 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f040000.
+11-23 21:02:09.960 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f050000.
+11-23 21:02:09.993 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f010000.
+11-23 21:02:09.993 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f020000.
+11-23 21:02:09.994 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f030000.
+11-23 21:02:09.995 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f040000.
+11-23 21:02:09.995 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f050000.
+11-23 21:02:09.996 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f010000.
+11-23 21:02:09.997 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f020000.
+11-23 21:02:09.997 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f030000.
+11-23 21:02:09.997 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f040000.
+11-23 21:02:09.997 25134 25134 E .lucidum.panpan: No package ID 7f found for resource ID 0x7f050000.

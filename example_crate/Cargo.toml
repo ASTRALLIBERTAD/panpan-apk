@@ -9,3 +9,9 @@ crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 panpan = { path = "../panpan" }
+
+[target.'cfg(target_os = "android")'.dependencies]
+panpan = { path = "../panpan", features = ["android"] }
+
+[target.'cfg(not(target_os = "android"))'.dependencies]
+panpan = { path = "../panpan", features = ["desktop"] }

@@ -27,17 +27,17 @@ panpan::render();
 
 #[no_mangle]
 pub extern "system" fn Java_com_lucidum_panpan_MainActivity_nativeTouchDown(_env: JNIEnv, _class: JClass, id: i32, x: f32, y: f32) {
-panpan::touch_down(id, x, y);
+crate::touch_down(id, x, y);
 }
 
 
 #[no_mangle]
 pub extern "system" fn Java_com_lucidum_panpan_MainActivity_nativeTouchMove(_env: JNIEnv, _class: JClass, id: i32, x: f32, y: f32) {
-panpan::touch_move(id, x, y);
+crate::touch_move(id, x, y);
 }
 
 
 #[no_mangle]
 pub extern "system" fn Java_com_lucidum_panpan_MainActivity_nativeTouchUp(_env: JNIEnv, _class: JClass, id: i32) {
-panpan::touch_up(id);
+crate::touch_up(id);
 }

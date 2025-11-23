@@ -11,9 +11,10 @@ glow = "0.16.0"
 raw-window-handle = "0.6"
 # Optional features for desktop build
 glutin = { version = "0.32.3", optional = true }
+# Android JNI
+jni = { version = "0.21", optional = true }
 
 
 [features]
-default = ["desktop"]
 desktop = ["winit", "glutin"]
-android = []
+android = ["jni"]
