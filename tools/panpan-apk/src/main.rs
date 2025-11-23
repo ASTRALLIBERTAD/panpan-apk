@@ -17,7 +17,8 @@ struct Args {
 
 fn main() -> Result<()> {
     let args = Args::parse();
-    let crate_path = Path::new(&args.crate_path);
+    let crate_path = Path::new(&args.crate_path).canonicalize()
+        .context("Failed to resolve crate path")?;
 
     let src_candidates = [
         crate_path.join("src/lib.rs"),
@@ -36,16 +37,23 @@ fn main() -> Result<()> {
     }
     fs::create_dir_all(target.join("src"))?;
 
-    let crate_name = detect_crate_name(crate_path)?;
-    // Check if panpan engine crate exists
-    let panpan_dep = if crate_path.parent()
-        .and_then(|p| p.parent())
-        .map(|p| p.join("panpan/Cargo.toml").exists())
-        .unwrap_or(false) 
-    {
-        "panpan = { path = \"../../../panpan\" }\n"
+    let crate_name = detect_crate_name(&crate_path)?;
+    
+    // Find panpan crate - look in parent directory
+    let panpan_path = crate_path.parent()
+        .map(|p| p.join("panpan"))
+        .filter(|p| p.join("Cargo.toml").exists());
+    
+    let panpan_dep = if let Some(pp) = panpan_path {
+        // Make path relative to target/panpan_jni
+        let relative = pathdiff::diff_paths(&pp, &target)
+            .unwrap_or_else(|| pp.clone());
+        // Convert backslashes to forward slashes for Cargo.toml compatibility
+        let path_str = relative.display().to_string().replace('\\', "/");
+        format!("panpan = {{ path = \"{}\" }}\n", path_str)
     } else {
-        ""
+        println!("Warning: panpan crate not found, some features may not work");
+        String::new()
     };
 
     let cargo_toml = format!("[package]
@@ -375,7 +383,7 @@ impl TextRenderer {
 }
 "#);
 
-    // Add shader constants as strings (avoiding raw string issues)
+    // Add shader constants as strings
     code.push_str("\nconst VERTEX_SHADER: &str = r###\"#version 300 es\n");
     code.push_str("layout (location = 0) in vec4 vertex;\n");
     code.push_str("out vec2 TexCoords;\n");
