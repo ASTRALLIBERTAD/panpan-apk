@@ -13,6 +13,9 @@ raw-window-handle = "0.6"
 glutin = { version = "0.32.3", optional = true }
 # Android JNI
 jni = { version = "0.21", optional = true }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+image = "0.25.9"
 
 
 [features]

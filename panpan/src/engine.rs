@@ -17,6 +17,7 @@ pub fn get_screen_size() -> (i32, i32) {
 pub fn set_screen_size(width: i32, height: i32) {
     *SCREEN_SIZE.lock().unwrap() = (width, height);
 }
+
 pub fn init(_gl: Option<Context>) {
     #[cfg(feature="android")]
     {
@@ -43,13 +44,20 @@ pub fn init(_gl: Option<Context>) {
     }
 }
 
-pub fn resize(_w: i32, _h: i32) {
+pub fn resize(w: i32, h: i32) {
+    set_screen_size(w, h);
     if let Some(_) = RENDERER.lock().unwrap().as_ref() { /* set viewport if needed */ }
 }
 
 pub fn render() {
     if let Some(r) = RENDERER.lock().unwrap().as_ref() {
         r.clear(0.1, 0.2, 0.3, 1.0);
+    }
+}
+
+pub fn clear_screen(r: f32, g: f32, b: f32, a: f32) {
+    if let Some(renderer) = RENDERER.lock().unwrap().as_ref() {
+        renderer.clear(r, g, b, a);
     }
 }
 

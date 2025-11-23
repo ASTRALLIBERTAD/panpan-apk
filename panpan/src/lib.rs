@@ -21,6 +21,10 @@ pub fn render() {
     engine::render();
 }
 
+pub fn clear_screen(r: f32, g: f32, b: f32, a: f32) {
+    engine::clear_screen(r, g, b, a);
+}
+
 pub fn draw_text(text: &str, x: f32, y: f32, scale: f32, color: Color) {
     engine::draw_text(text, x, y, scale, color);
 }
@@ -44,7 +48,6 @@ pub fn panpan_internal_set_screen_size(width: i32, height: i32) {
 #[doc(hidden)]
 pub fn panpan_internal_update_time(_dt: f32) {
     // Update timing state if needed
-    // For now this is a no-op as the example doesn't use external timing
 }
 
 #[doc(hidden)]

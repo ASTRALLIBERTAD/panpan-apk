@@ -16,6 +16,7 @@ Quick start:
    ```
 4. Run:
    ```
+   cd ../..
    panpan-apk --crate-path ./example_crate --android-template ./android --release --install
    ```
 
@@ -36,4 +37,21 @@ For app debugging (Windows):
    PowerShell version:
    ```
    adb logcat --pid=15322 *:E | Out-File crash.log
+   ```
+
+# panpan-desktop
+
+This archive contains a starter implementation of **panpan-desktop**:
+- `tools/panpan-desktop/` — Rust CLI starter tool (generator skeleton).
+- `example_crate/` — Example Rust library crate (`libpanpan.so`) with `pub fn init/resize/render`.
+
+1. Build and install `panpan-desktop`:
+   ```
+   cd tools/panpan-desktop
+   cargo install --path .
+   ```
+2. Run:
+   ```
+   cd ../.. 
+   panpan-desktop --crate-path ./example_crate --release
    ```
