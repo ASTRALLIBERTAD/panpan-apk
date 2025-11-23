@@ -76,6 +76,13 @@ log = \"0.4\"
     let lib_rs = generate_librs_with_opengl(&crate_name, &fns);
     fs::write(target.join("src/lib.rs"), lib_rs)?;
 
+    // Generate MainActivity.kt with touch support
+    let main_activity_kt = generate_main_activity_kt();
+    let main_activity_path = Path::new(&args.android_template)
+        .join("app/src/main/java/com/lucidum/panpan/MainActivity.kt");
+    fs::write(main_activity_path, main_activity_kt)?;
+    println!("Generated MainActivity.kt with touch support");
+
     let abis = vec![
         ("arm64-v8a", "aarch64-linux-android"),
         ("armeabi-v7a", "armv7-linux-androideabi"),
@@ -163,21 +170,21 @@ fn generate_librs_with_opengl(crate_name: &str, fns: &[String]) -> String {
     
     if has_init {
         wrapper_fns.push_str(&format!(
-            "#[no_mangle]\npub extern \"C\" fn panpan_user_init() {{\n    {}::init();\n}}\n\n",
+            "#[unsafe(no_mangle)]\npub extern \"C\" fn panpan_user_init() {{\n    {}::init();\n}}\n\n",
             crate_name
         ));
     }
     
     if has_resize {
         wrapper_fns.push_str(&format!(
-            "#[no_mangle]\npub extern \"C\" fn panpan_user_resize(width: i32, height: i32) {{\n    {}::resize(width, height);\n}}\n\n",
+            "#[unsafe(no_mangle)]\npub extern \"C\" fn panpan_user_resize(width: i32, height: i32) {{\n    {}::resize(width, height);\n}}\n\n",
             crate_name
         ));
     }
     
     if has_render {
         wrapper_fns.push_str(&format!(
-            "#[no_mangle]\npub extern \"C\" fn panpan_user_render() {{\n    {}::render();\n}}\n\n",
+            "#[unsafe(no_mangle)]\npub extern \"C\" fn panpan_user_render() {{\n    {}::render();\n}}\n\n",
             crate_name
         ));
     }
@@ -189,7 +196,7 @@ fn generate_librs_with_opengl(crate_name: &str, fns: &[String]) -> String {
     };
 
     let resize_call = if has_resize {
-        "    panpan_user_resize(width as i32, height as i32);\n    panpan::panpan_internal_set_screen_size(width as i32, height as i32);\n"
+        "    panpan_user_resize(width as i32, height as i32);\n"
     } else {
         "    // No resize() function found in user crate\n"
     };
@@ -425,7 +432,7 @@ fn init_logging() {
     code.push_str(&wrapper_fns);
     
     code.push_str(r#"
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn panpan_draw_text(
     text_ptr: *const u8,
     text_len: usize,
@@ -452,9 +459,10 @@ pub extern "C" fn panpan_draw_text(
 
 // JNI ENTRYPOINTS -------------------------------------------------------
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn Java_com_lucidum_panpan_MainActivity_nativeInit(_env: JNIEnv, _class: JClass) {
     init_logging();
+    log::info!("PanPan: Initializing native layer");
     
     unsafe {
         gl::load_with(|s| {
@@ -462,20 +470,24 @@ pub extern "C" fn Java_com_lucidum_panpan_MainActivity_nativeInit(_env: JNIEnv, 
             eglGetProcAddress(c_str.as_ptr()) as *const _
         });
         
+        log::info!("PanPan: OpenGL loaded");
+        
         gl::ClearColor(0.1, 0.2, 0.3, 1.0);
         gl::Enable(gl::DEPTH_TEST);
         gl::DepthFunc(gl::LEQUAL);
 
         if let Ok(mut renderer) = TEXT_RENDERER.lock() {
             *renderer = Some(TextRenderer::new());
+            log::info!("PanPan: Text renderer initialized");
         }
     }
 "#);
 
     code.push_str(init_call);
+    code.push_str("    log::info!(\"PanPan: User init complete\");\n");
     code.push_str("}\n\n");
     
-    code.push_str(r#"#[no_mangle]
+    code.push_str(r#"#[unsafe(no_mangle)]
 pub extern "C" fn Java_com_lucidum_panpan_MainActivity_nativeResize(_env: JNIEnv, _class: JClass, width: jint, height: jint) {
     unsafe {
         gl::Viewport(0, 0, width, height);
@@ -485,9 +497,10 @@ pub extern "C" fn Java_com_lucidum_panpan_MainActivity_nativeResize(_env: JNIEnv
 "#);
 
     code.push_str(resize_call);
+    code.push_str("    panpan::panpan_internal_set_screen_size(width as i32, height as i32);\n");
     code.push_str("}\n\n");
     
-    code.push_str(r#"#[no_mangle]
+    code.push_str(r#"#[unsafe(no_mangle)]
 pub extern "C" fn Java_com_lucidum_panpan_MainActivity_nativeRender(_env: JNIEnv, _class: JClass) {
     unsafe {
         gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -495,7 +508,137 @@ pub extern "C" fn Java_com_lucidum_panpan_MainActivity_nativeRender(_env: JNIEnv
 "#);
 
     code.push_str(render_call);
-    code.push_str("}\n");
+    code.push_str("}\n\n");
+    
+    // Add time update JNI function
+    code.push_str(r#"#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_lucidum_panpan_MainActivity_nativeUpdateTime(_env: JNIEnv, _class: JClass, dt: f32) {
+    panpan::panpan_internal_update_time(dt);
+}
+
+"#);
+    
+    // Add touch handling JNI functions
+    code.push_str(r#"#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_lucidum_panpan_MainActivity_nativeTouchDown(_env: JNIEnv, _class: JClass, id: jint, x: f32, y: f32) {
+    panpan::panpan_internal_touch_down(id, x, y);
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_lucidum_panpan_MainActivity_nativeTouchMove(_env: JNIEnv, _class: JClass, id: jint, x: f32, y: f32) {
+    panpan::panpan_internal_touch_move(id, x, y);
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_lucidum_panpan_MainActivity_nativeTouchUp(_env: JNIEnv, _class: JClass, id: jint) {
+    panpan::panpan_internal_touch_up(id);
+}
+"#);
     
     code
+}
+
+fn generate_main_activity_kt() -> String {
+    r#"package com.lucidum.panpan
+
+import android.app.Activity
+import android.opengl.GLSurfaceView
+import android.os.Bundle
+import android.view.MotionEvent
+
+class MainActivity : Activity() {
+
+    companion object {
+        init {
+            System.loadLibrary("panpan")
+        }
+    }
+
+    external fun nativeInit()
+    external fun nativeResize(width: Int, height: Int)
+    external fun nativeRender()
+    external fun nativeTouchDown(id: Int, x: Float, y: Float)
+    external fun nativeTouchMove(id: Int, x: Float, y: Float)
+    external fun nativeTouchUp(id: Int)
+    external fun nativeUpdateTime(deltaTime: Float)
+
+    private lateinit var glView: GLSurfaceView
+    private var lastFrameTime = System.nanoTime()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        glView = object : GLSurfaceView(this) {
+            override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+                super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+            }
+        }
+
+        glView.setEGLContextClientVersion(3)
+
+        glView.setRenderer(object : GLSurfaceView.Renderer {
+            override fun onSurfaceCreated(unused: javax.microedition.khronos.opengles.GL10?, config: javax.microedition.khronos.egl.EGLConfig?) {
+                nativeInit()
+                lastFrameTime = System.nanoTime()
+            }
+
+            override fun onSurfaceChanged(unused: javax.microedition.khronos.opengles.GL10?, width: Int, height: Int) {
+                nativeResize(width, height)
+            }
+
+            override fun onDrawFrame(unused: javax.microedition.khronos.opengles.GL10?) {
+                val currentTime = System.nanoTime()
+                val deltaTime = (currentTime - lastFrameTime) / 1_000_000_000.0f
+                lastFrameTime = currentTime
+                
+                nativeUpdateTime(deltaTime)
+                nativeRender()
+            }
+        })
+
+        setContentView(glView)
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        val action = event.actionMasked
+        val pointerIndex = event.actionIndex
+        val pointerId = event.getPointerId(pointerIndex)
+
+        when (action) {
+            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+                val x = event.getX(pointerIndex)
+                val y = event.getY(pointerIndex)
+                nativeTouchDown(pointerId, x, y)
+            }
+            MotionEvent.ACTION_MOVE -> {
+                for (i in 0 until event.pointerCount) {
+                    val id = event.getPointerId(i)
+                    val x = event.getX(i)
+                    val y = event.getY(i)
+                    nativeTouchMove(id, x, y)
+                }
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
+                nativeTouchUp(pointerId)
+            }
+            MotionEvent.ACTION_CANCEL -> {
+                for (i in 0 until event.pointerCount) {
+                    nativeTouchUp(event.getPointerId(i))
+                }
+            }
+        }
+        return true
+    }
+
+    override fun onPause() {
+        super.onPause()
+        glView.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        glView.onResume()
+    }
+}
+"#.to_string()
 }
