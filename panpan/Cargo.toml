@@ -4,4 +4,16 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-gl = "0.14.0"
+# Desktop
+winit = { version = "0.30.12", optional = true }
+# GL loader / bindings
+glow = "0.16.0"
+raw-window-handle = "0.6"
+# Optional features for desktop build
+glutin = { version = "0.32.3", optional = true }
+
+
+[features]
+default = ["desktop"]
+desktop = ["winit", "glutin"]
+android = []

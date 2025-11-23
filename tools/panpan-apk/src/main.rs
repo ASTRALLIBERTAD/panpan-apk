@@ -100,7 +100,8 @@ log = \"0.4\"
         if !status.success() { anyhow::bail!("cargo ndk failed"); }
         
         let profile = if args.release { "release" } else { "debug" };
-        let built = crate_path.join(format!("target/{}/{}/libpanpan_jni.so", tgt, profile));
+        let built = target.join(format!("target/{}/{}/libpanpan_jni.so", tgt, profile));
+
 
         if !built.exists() {
             println!("Warning: expected built library at {} not found.", built.display());
