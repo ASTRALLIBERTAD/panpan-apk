@@ -1,0 +1,10 @@
+[workspace]
+resolver = "2"
+
+members = [
+    "panpan",
+    "examples/demo_game",
+    "runners/desktop",
+    "runners/android/jni_wrapper",
+    "tools/panpan-cli",
+]
