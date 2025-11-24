@@ -1,66 +1,40 @@
-mod engine;
-mod platform;
-mod renderer;
-mod util;
+// panpan/src/lib.rs
+// Core engine API - platform agnostic
 
-pub use crate::util::{Color, Vec2};
+pub mod types;
+pub mod graphics;
+pub mod input;
 
-// Export touch handler registration for user code
-pub use crate::engine::set_touch_handlers;
+// Re-export commonly used items
+pub use types::{Color, Vec2, Rect};
+pub use graphics::{clear_screen, draw_rect, draw_circle, draw_text};
+pub use input::{Touch, TouchPhase, Key, InputEvent};
 
-/// Initialize engine with optional GL context for desktop/Android
-pub fn init(gl: Option<glow::Context>) {
-    engine::init(gl);
+/// Main game trait that users must implement
+pub trait Game: Sized {
+    /// Create a new game instance
+    fn new() -> Self;
+    
+    /// Update game logic
+    fn update(&mut self, dt: f32);
+    
+    /// Render the game
+    fn render(&self);
+    
+    /// Optional: handle input events
+    fn on_touch_down(&mut self, _id: i32, _x: f32, _y: f32) {}
+    fn on_touch_move(&mut self, _id: i32, _x: f32, _y: f32) {}
+    fn on_touch_up(&mut self, _id: i32) {}
 }
 
-pub fn resize(width: i32, height: i32) {
-    engine::resize(width, height);
-}
-
-pub fn render() {
-    engine::render();
-}
-
-pub fn clear_screen(r: f32, g: f32, b: f32, a: f32) {
-    engine::clear_screen(r, g, b, a);
-}
-
-pub fn draw_text(text: &str, x: f32, y: f32, scale: f32, color: Color) {
-    engine::draw_text(text, x, y, scale, color);
-}
-
-pub fn draw_rect(x: f32, y: f32, w: f32, h: f32, color: Color) {
-    engine::draw_rect(x, y, w, h, color);
-}
-
-pub fn touch_down(id: i32, x: f32, y: f32) { engine::touch_down(id, x, y); }
-pub fn touch_move(id: i32, x: f32, y: f32) { engine::touch_move(id, x, y); }
-pub fn touch_up(id: i32) { engine::touch_up(id); }
-
-pub fn set_platform(p: &'static dyn platform::Platform) { platform::set_platform(p); }
-
-// Internal API functions for panpan-apk JNI wrapper
+/// Internal: Runner will call this to initialize the rendering backend
 #[doc(hidden)]
-pub fn panpan_internal_set_screen_size(width: i32, height: i32) {
-    resize(width, height);
+pub fn __internal_init_graphics(gl: glow::Context) {
+    graphics::init(gl);
 }
 
+/// Internal: Runner will call this on resize
 #[doc(hidden)]
-pub fn panpan_internal_update_time(_dt: f32) {
-    // Update timing state if needed
-}
-
-#[doc(hidden)]
-pub fn panpan_internal_touch_down(id: i32, x: f32, y: f32) {
-    touch_down(id, x, y);
-}
-
-#[doc(hidden)]
-pub fn panpan_internal_touch_move(id: i32, x: f32, y: f32) {
-    touch_move(id, x, y);
-}
-
-#[doc(hidden)]
-pub fn panpan_internal_touch_up(id: i32) {
-    touch_up(id);
+pub fn __internal_resize(width: i32, height: i32) {
+    graphics::set_viewport(width, height);
 }

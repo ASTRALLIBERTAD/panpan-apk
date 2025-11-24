@@ -1,7 +1,10 @@
 [package]
-name = "panpan"
+name = "demo_game"
 version = "0.1.0"
 edition = "2021"
 
+
+[lib]
+
 [dependencies]
-glow = "0.16.0"
+panpan = { path = "../../panpan" }

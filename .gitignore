@@ -1,8 +1,8 @@
 target/
 
-android/app/build/
+runners/android/android/app/build/
 
-android/app/src/main/jniLibs/armeabi-v7a/
-android/app/src/main/jniLibs/arm64-v8a/
+runners/android/android/app/src/main/jniLibs/armeabi-v7a/
+runners/android/android/app/src/main/jniLibs/arm64-v8a/
 
-android/.gradle/
+runners/android/android/.gradle/

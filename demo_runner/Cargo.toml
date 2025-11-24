@@ -1,0 +1,8 @@
+[package]
+name = "demo_runner"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+demo_game = { path = "../examples/demo_game" }
+runners-desktop = { path = "../runners/desktop" }
